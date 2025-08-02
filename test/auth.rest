@@ -5,6 +5,262 @@
 @adminRefreshToken = 
 
 ### ========================================
+### PHASE 1: NEW AUTHENTICATION FEATURES
+### ========================================
+
+### ========================================
+### 1. PASSWORD RESET FLOW
+### ========================================
+
+### Request Password Reset (Self)
+POST {{url}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "viranshk7@gmail.com"
+}
+
+### Reset Password with Token
+POST {{url}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "your-reset-token-here",
+  "newPassword": "NewSecurePassword123!"
+}
+
+### Admin Reset User Password
+POST {{url}}/auth/admin/reset-password
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "member@taskmanagement.com",
+  "newPassword": "AdminResetPassword123!"
+}
+
+### ========================================
+### 2. PROFILE UPDATE
+### ========================================
+
+### Update Profile (Basic Info)
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Administrator"
+}
+
+### Update Profile with Password Change
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Administrator",
+  "currentPassword": "Admin123!",
+  "newPassword": "NewSecurePassword123!"
+}
+
+### Update Profile (Password Only)
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Admin123!",
+  "newPassword": "NewSecurePassword123!"
+}
+
+### ========================================
+### 3. LOGOUT
+### ========================================
+
+### Logout User
+POST {{url}}/auth/logout
+Authorization: Bearer {{adminToken}}
+
+### ========================================
+### 4. VALIDATION TESTS
+### ========================================
+
+### Invalid Password Reset Token
+POST {{url}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "invalid-token",
+  "newPassword": "NewPassword123!"
+}
+
+### Expired Password Reset Token
+POST {{url}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "expired-token-here",
+  "newPassword": "NewPassword123!"
+}
+
+### Profile Update with Wrong Current Password
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "WrongPassword",
+  "newPassword": "NewPassword123!"
+}
+
+### Profile Update without Current Password
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "newPassword": "NewPassword123!"
+}
+
+### Admin Reset Password (Non-Admin User)
+POST {{url}}/auth/admin/reset-password
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "email": "member@taskmanagement.com",
+  "newPassword": "NewPassword123!"
+}
+
+### ========================================
+### 5. ROLE-BASED ACCESS TESTS
+### ========================================
+
+### Manager Tries Admin Reset Password (Should Fail)
+POST {{url}}/auth/admin/reset-password
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "email": "member@taskmanagement.com",
+  "newPassword": "NewPassword123!"
+}
+
+### Member Tries Admin Reset Password (Should Fail)
+POST {{url}}/auth/admin/reset-password
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "email": "member@taskmanagement.com",
+  "newPassword": "NewPassword123!"
+}
+
+### ========================================
+### 6. SUCCESS SCENARIOS
+### ========================================
+
+### Complete Password Reset Flow
+# Step 1: Request reset
+POST {{url}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "admin@taskmanagement.com"
+}
+
+# Step 2: Use token from email to reset password
+POST {{url}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "token-from-email",
+  "newPassword": "NewSecurePassword123!"
+}
+
+# Step 3: Login with new password
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@taskmanagement.com",
+  "password": "NewSecurePassword123!"
+}
+
+### Complete Profile Update Flow
+# Step 1: Update profile
+PUT {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Administrator"
+}
+
+# Step 2: Verify profile updated
+GET {{url}}/auth/profile
+Authorization: Bearer {{adminToken}}
+
+### ========================================
+### 7. SECURITY TESTS
+### ========================================
+
+### Forgot Password with Non-existent Email
+POST {{url}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "nonexistent@taskmanagement.com"
+}
+
+### Forgot Password with Invalid Email Format
+POST {{url}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "invalid-email-format"
+}
+
+### Reset Password with Weak Password
+POST {{url}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "valid-token",
+  "newPassword": "123"
+}
+
+### ========================================
+### 8. ERROR HANDLING TESTS
+### ========================================
+
+### Access Protected Endpoints Without Token
+PUT {{url}}/auth/profile
+Content-Type: application/json
+
+{
+  "firstName": "Test"
+}
+
+POST {{url}}/auth/admin/reset-password
+Content-Type: application/json
+
+{
+  "email": "test@taskmanagement.com",
+  "newPassword": "NewPassword123!"
+}
+
+### Access Logout Without Token
+POST {{url}}/auth/logout
+
+### ========================================
+### ORIGINAL AUTH TESTS (KEPT FOR REFERENCE)
+### ========================================
+
+### ========================================
 ### 1. ADMIN LOGIN
 ### ========================================
 # @name adminLogin
@@ -372,3 +628,8 @@ Content-Type: application/json
 #    - 404: Not Found
 #    - 422: Validation Error
 # 5. Check response bodies for proper error messages and data structure
+# 6. Phase 1 features include:
+#    - Password reset (self and admin)
+#    - Profile updates (safe fields only)
+#    - Logout functionality
+#    - Enhanced security and validation

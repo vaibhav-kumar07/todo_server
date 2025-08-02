@@ -8,8 +8,8 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Team, TeamSchema } from '../teams/schemas/team.schema';
-import { EmailService } from './email.service';
-import { SeedService } from './seed.service'; 
+import { SharedModule } from '../shared/shared.module';
+import { SeedService } from '../shared/database/seed.service'; 
 
 @Module({
   imports: [
@@ -28,11 +28,14 @@ import { SeedService } from './seed.service';
       { name: User.name, schema: UserSchema },
       { name: Team.name, schema: TeamSchema },
     ]),
+    SharedModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, EmailService, SeedService],
-  exports: [AuthService, JwtStrategy, SeedService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService, JwtStrategy],
 })
+
+
 export class AuthModule implements OnModuleInit {
   constructor(private seedService: SeedService) {}
 

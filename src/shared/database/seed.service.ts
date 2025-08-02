@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { User, UserDocument, UserRole } from '../users/schemas/user.schema';
-import { Team, TeamDocument } from '../teams/schemas/team.schema';
+import { User, UserDocument, UserRole } from '../../users/schemas/user.schema';
+import { Team, TeamDocument } from '../../teams/schemas/team.schema';
 
 @Injectable()
 export class SeedService {
@@ -27,11 +27,10 @@ export class SeedService {
       }
 
       this.logger.log('👤 Creating admin user first...');
-      
       // Create admin user first
       const hashedPassword = await bcrypt.hash('Admin123!', 12);
       const adminUser = new this.userModel({
-        email: 'admin@taskmanagement.com',
+        email: 'admin@taskmanagement.com', // Fixed email here
         firstName: 'System',
         lastName: 'Administrator',
         password: hashedPassword,

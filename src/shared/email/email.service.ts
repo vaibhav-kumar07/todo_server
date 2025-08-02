@@ -404,4 +404,58 @@ export class EmailService {
       throw error;
     }
   }
+
+  async sendAdminPasswordResetNotification(email: string) {
+    const htmlContent = `
+      <div class="welcome-section">
+        <h2>🔒 Password Reset by Administrator</h2>
+        <p>Hello there,</p>
+        <p>Your password has been reset by an administrator for your Task Management System account.</p>
+      </div>
+      
+      <div class="info-section">
+        <h4>⚠️ Important Notice</h4>
+        <p>• Your password has been changed by an administrator</p>
+        <p>• Please contact your administrator for your new password</p>
+        <p>• For security reasons, please change your password after logging in</p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${this.configService.get('FRONTEND_URL')}" class="cta-button">
+          🚀 Login to System
+        </a>
+      </div>
+      
+      <div class="info-section">
+        <h4>🔐 Security Reminder</h4>
+        <p>• Always use strong, unique passwords</p>
+        <p>• Never share your login credentials</p>
+        <p>• Contact your administrator if you have any concerns</p>
+      </div>
+      
+      <p style="color: #666; font-size: 14px; text-align: center;">
+        If you have any questions about this password reset, please contact your administrator.
+      </p>
+    `;
+
+    const mailOptions = {
+      from: `"Task Management System" <${this.configService.get('EMAIL_USER')}>`,
+      to: email,
+      subject: '🔒 Password Reset by Administrator - Task Management System',
+      html: this.getEmailTemplate(htmlContent),
+    };
+
+    if (!this.transporter) {
+      this.logger.warn(`Email service disabled. Would have sent admin reset notification to ${email}`);
+      return;
+    }
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Admin password reset notification sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send admin reset notification to ${email}:`, error);
+      throw error;
+    }
+  }
 } 
