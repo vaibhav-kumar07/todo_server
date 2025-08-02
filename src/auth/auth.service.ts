@@ -14,6 +14,8 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AdminResetPasswordDto } from './dto/admin-reset-password.dto';
 import { EmailService } from '../shared/email/email.service';
 import { SeedService } from '../shared/database/seed.service';
+import { EventLoggerService } from '../shared/logging/services/event-logger.service';
+import { EventType } from '../config/environment.enum';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: EmailService,
     private seedService: SeedService,
+    private eventLoggerService: EventLoggerService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -41,6 +44,21 @@ export class AuthService {
     if (!user.isEmailVerified) {
       throw new BadRequestException('Please verify your email before logging in');
     }
+
+    // Log login event
+    await this.eventLoggerService.logEvent(
+      EventType.USER_LOGIN,
+      {
+        email: user.email,
+        role: user.role,
+        teamId: user.teamId,
+      },
+      {
+        ip: 'system',
+        userAgent: 'system',
+      },
+      user._id?.toString(),
+    );
 
     const payload = {
       sub: user._id,
@@ -88,9 +106,11 @@ export class AuthService {
     const password = await this.seedService.generateSecurePassword();
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create or get team
+    // Handle team assignment logic
     let teamId = currentUser.teamId;
-    if (inviteUserDto.teamName) {
+    
+    // If admin is inviting and teamName is provided, create new team
+    if (currentUser.role === UserRole.ADMIN && inviteUserDto.teamName) {
       const newTeam = new this.teamModel({
         name: inviteUserDto.teamName,
         description: inviteUserDto.teamDescription || '',
@@ -99,6 +119,15 @@ export class AuthService {
       });
       const savedTeam = await newTeam.save();
       teamId = savedTeam._id;
+    }
+    
+    // If manager is inviting, ensure they have a team and assign member to their team
+    if (currentUser.role === UserRole.MANAGER) {
+      if (!currentUser.teamId) {
+        throw new BadRequestException('Manager must be assigned to a team to invite members');
+      }
+      // Manager can only invite members to their own team
+      teamId = currentUser.teamId;
     }
 
     // Create user
@@ -125,6 +154,29 @@ export class AuthService {
       password,
       inviteUserDto.role,
       `${currentUser.firstName} ${currentUser.lastName}`,
+    );
+
+    // Log event for analytics
+    await this.eventLoggerService.logEvent(
+      EventType.ADMIN_USER_CREATED,
+      {
+        invitedUser: {
+          id: newUser._id,
+          email: newUser.email,
+          role: newUser.role,
+          teamId: newUser.teamId,
+        },
+        invitedBy: {
+          id: currentUser.id,
+          role: currentUser.role,
+          teamId: currentUser.teamId,
+        },
+      },
+      {
+        ip: 'system',
+        userAgent: 'system',
+      },
+      currentUser.id,
     );
 
     return {

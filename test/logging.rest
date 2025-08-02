@@ -1,0 +1,54 @@
+### Test Event Logging System
+@authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhkMzU3ODUwMmZkY2RlN2RkYTY4YTIiLCJlbWFpbCI6InZpcmFuc2hrN0BnbWFpbC5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1NDE0MDY1NSwiZXhwIjoxNzU0MjI3MDU1fQ.IryghehUwbyVZX-0Q-zJ-525VxXNOZ7-8vJY5CifEqU
+@taskId= 688d3578502fddce7dd968a2
+@userId= 688e0f15260a282fa8608ce0
+
+### 1. Check Health Endpoint (includes Redis status)
+GET http://localhost:3000/health
+
+### 2. Test Redis Connection
+GET http://localhost:3000/websocket-status
+
+### 3. Test Event Logging with Login
+POST http://localhost:3000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "viranshk7@gmail.com",
+  "password": "&AuLpXcqZ9W6"
+}
+
+### 4. Test Task Creation (will trigger event logging)
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "title": "Test Task for Logging",
+  "description": "This task is created to test the logging system",
+  "priority": "MEDIUM",
+  "assignedTo": "{{userId}}"
+}
+
+### 5. Test Task Status Change (will trigger event logging)
+PATCH http://localhost:3000/api/v1/tasks/{{taskId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "status": "IN_PROGRESS"
+}
+
+### 6. Test Analytics Endpoint (when implemented)
+GET http://localhost:3000/api/v1/admin/analytics/overview
+Authorization: Bearer {{authToken}}
+
+### 7. Test User Activity Timeline (when implemented)
+GET http://localhost:3000/api/v1/user/analytics/timeline
+Authorization: Bearer {{authToken}}
+
+### Variables for testing:
+# @name login
+# authToken = {{login.response.body.access_token}}
+# userId = {{login.response.body.user.id}}
+# taskId = {{createTask.response.body._id}} 

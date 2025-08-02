@@ -1,0 +1,56 @@
+### Test Team Assignment Logic
+
+@url = http://localhost:3000/api/v1
+@managerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhkMzU3ODUwMmZkY2RlN2RkYTY4YTIiLCJlbWFpbCI6InZpcmFuc2hrN0BnbWFpbC5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1NDE0MDY1NSwiZXhwIjoxNzU0MjI3MDU1fQ.IryghehUwbyVZX-0Q-zJ-525VxXNOZ7-8vJY5CifEqU
+@memberToken = ""
+@adminToken = ""
+### 1. Check Manager's Profile (to see their teamId)
+GET {{url}}/auth/profile
+Authorization: Bearer {{managerToken}}
+
+### 2. Manager Invites Member (should assign to manager's team)
+POST {{url}}/auth/invite
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "email": "testmember@taskmanagement.com",
+  "firstName": "Test",
+  "lastName": "Member",
+  "role": "MEMBER"
+}
+
+### 3. Check the response to see if teamId is assigned correctly
+# The response should show the teamId in the user object
+# Expected: The invited member should have the same teamId as the manager
+
+### 4. Login as the invited member to verify team assignment
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testmember@taskmanagement.com",
+  "password": "{{$randomPassword}}"
+}
+
+### 5. Check the invited member's profile to verify teamId
+GET {{url}}/auth/profile
+Authorization: Bearer {{memberToken}}
+
+### 6. Admin creates a new team and invites member
+POST {{url}}/auth/invite
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "newteammember@taskmanagement.com",
+  "firstName": "New",
+  "lastName": "TeamMember",
+  "role": "MEMBER",
+  "teamName": "New Test Team",
+  "teamDescription": "A new team created by admin"
+}
+
+### Variables for testing:
+# @name managerInvite
+# memberToken = {{managerInvite.response.body.user.id}} 

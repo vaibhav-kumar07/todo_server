@@ -33,6 +33,14 @@ export interface CorsConfig {
   credentials: boolean;
 }
 
+export interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  database: number;
+  uri: string;
+}
+
 export interface WebSocketConfig {
   cors: CorsConfig;
   port: number;
@@ -48,6 +56,7 @@ export interface AppConfig {
   email: EmailConfig;
   cors: CorsConfig;
   websocket: WebSocketConfig;
+  redis: RedisConfig;
   apiPrefix: string;
   nodeEnv: string;
 } 

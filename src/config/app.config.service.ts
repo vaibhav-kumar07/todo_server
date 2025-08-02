@@ -12,7 +12,8 @@ import {
   JwtConfig, 
   EmailConfig, 
   CorsConfig, 
-  WebSocketConfig 
+  WebSocketConfig,
+  RedisConfig
 } from './app.config.interface';
 
 @Injectable()
@@ -39,9 +40,21 @@ export class AppConfigService {
       email: this.loadEmailConfig(),
       cors: this.loadCorsConfig(environment),
       websocket: this.loadWebSocketConfig(environment),
+      redis: this.loadRedisConfig(),
     };
   }
 
+
+  private loadRedisConfig(): RedisConfig {
+    return {
+      host: this.configService.get<string>('REDIS_HOST', 'localhost'),
+      port: this.configService.get<number>('REDIS_PORT', 6379),
+      password: this.configService.get<string>('REDIS_PASSWORD', ''),
+      database: this.configService.get<number>('REDIS_DB', 0),
+      uri: this.configService.get<string>('REDIS_URI', 'redis://localhost:6379'),
+    };
+  } 
+  
   private parseEnvironment(nodeEnv: string): Environment {
     switch (nodeEnv.toLowerCase()) {
       case 'production':
@@ -162,6 +175,10 @@ export class AppConfigService {
 
   public getWebSocketConfig(): WebSocketConfig {
     return this.config.websocket;
+  }
+
+  public getRedisConfig(): RedisConfig {
+    return this.config.redis;
   }
 
   public getApiPrefix(): string {

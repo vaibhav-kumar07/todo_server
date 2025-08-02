@@ -1,6 +1,6 @@
 @url = http://localhost:3000/api/v1
 @adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhkMzBkMWUwMGEyZDEzYzA5Zjg0NzQiLCJlbWFpbCI6ImFkbWluQHRhc2ttYW5hZ2VtZW50LmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1NDA4MzgzOCwiZXhwIjoxNzU0MTcwMjM4fQ.9wD5MCJOVHbBiC583AtJWh2MUnT-LTFsMvzqoGgd0-w
-@managerToken = 
+@managerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODhkMzU3ODUwMmZkY2RlN2RkYTY4YTIiLCJlbWFpbCI6InZpcmFuc2hrN0BnbWFpbC5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1NDE0MTY1OCwiZXhwIjoxNzU0MjI4MDU4fQ.B0klkh7EVdedYi0P0JJvGXvnecK2tGCM2VsBt9IW39s
 @memberToken = 
 @adminRefreshToken = 
 
@@ -288,12 +288,10 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-  "email": "viranshk7@gmail.com",
-  "firstName": "John",
-  "lastName": "Manager",
-  "role": "MANAGER",
-  "teamName": "Development Team",
-  "teamDescription": "Software development team"
+  "email": "vishalkumar336907@gmail.com",
+  "firstName": "Vishal",
+  "lastName": "Kumar",
+  "role": "MEMBER"
 }
 
 ### ========================================
@@ -321,8 +319,8 @@ POST {{url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "manager@taskmanagement.com",
-  "password": "{{$randomPassword}}"
+  "email": "viranshk7@gmail.com",
+  "password": "&AuLpXcqZ9W6"
 }
 
 ### ========================================
@@ -340,10 +338,10 @@ POST {{url}}/auth/invite
 Authorization: Bearer {{managerToken}}
 Content-Type: application/json
 
-{
-  "email": "developer@taskmanagement.com",
-  "firstName": "Mike",
-  "lastName": "Developer",
+{in 
+  "email": "vishalkumar336907@gmail.com",
+  "firstName": "Vishal",
+  "lastName": "Kumar",
   "role": "MEMBER"
 }
 
@@ -356,10 +354,11 @@ Authorization: Bearer {{managerToken}}
 Content-Type: application/json
 
 {
-  "email": "another-manager@taskmanagement.com",
-  "firstName": "Sarah",
-  "lastName": "Manager",
+  "email": "vishalkumar336907@gmail.com",
+  "firstName": "Vishal",
+  "lastName": "Kumar",
   "role": "MANAGER"
+
 }
 
 ### ========================================
@@ -390,9 +389,9 @@ Authorization: Bearer {{memberToken}}
 Content-Type: application/json
 
 {
-  "email": "newuser@taskmanagement.com",
-  "firstName": "New",
-  "lastName": "User",
+  "email": "vishalkumar336907@gmail.com",
+  "firstName": "Vishal",
+  "lastName": "Kumar",
   "role": "MEMBER"
 }
 

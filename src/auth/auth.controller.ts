@@ -40,6 +40,8 @@ export class AuthController {
     return this.authService.getProfile(req.user.id);
   }
 
+
+
   @Put('profile')
   @UseGuards(JwtAuthGuard)
   async updateProfile(@Body() updateProfileDto: UpdateProfileDto, @Request() req) {
