@@ -6,12 +6,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTasksDto, TaskView } from './dto/query-tasks.dto';
 import { User, UserRole } from '../users/schemas/user.schema';
+import { WebSocketService } from '../shared/websocket/websocket.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
     @InjectModel(User.name) private userModel: Model<User>,
+    private websocketService: WebSocketService,
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
@@ -60,7 +62,19 @@ export class TasksService {
     }
 
     const task = new this.taskModel(taskData);
-    return task.save();
+    const savedTask = await task.save();
+
+    // Emit WebSocket notifications
+    if (savedTask.isPersonal) {
+      // Personal task - notify only the creator
+      this.websocketService.emitTaskCreated(savedTask, user.teamId.toString());
+    } else {
+      // Team task - notify the assigned member and team
+      this.websocketService.emitTaskAssigned(savedTask, savedTask.assignedTo.toString());
+      this.websocketService.emitTaskCreated(savedTask, user.teamId.toString());
+    }
+
+    return savedTask;
   }
 
   async findAll(queryDto: QueryTasksDto, userId: string): Promise<Task[]> {
@@ -204,6 +218,7 @@ export class TasksService {
     }
 
     // Handle status transitions
+    const previousStatus = task.status;
     if (updateTaskDto.status && updateTaskDto.status !== task.status) {
       this.validateStatusTransition(task.status, updateTaskDto.status);
     }
@@ -231,6 +246,19 @@ export class TasksService {
     if (!updatedTask) {
       throw new NotFoundException('Task not found');
     }
+
+    // Emit WebSocket notifications for status changes
+    if (updateTaskDto.status && updateTaskDto.status !== previousStatus) {
+      this.websocketService.emitTaskStatusChanged(
+        updatedTask,
+        previousStatus,
+        updateTaskDto.status,
+        updatedTask.teamId.toString()
+      );
+    }
+
+    // Emit task updated notification
+    this.websocketService.emitTaskUpdated(updatedTask, updatedTask.teamId.toString());
 
     return updatedTask as Task;
   }
@@ -265,7 +293,14 @@ export class TasksService {
       }
     }
 
+    // Store task info before deletion for notification
+    const taskTitle = task.title;
+    const teamId = task.teamId.toString();
+
     await this.taskModel.findByIdAndDelete(id);
+
+    // Emit task deleted notification
+    this.websocketService.emitTaskDeleted(id, taskTitle, teamId);
   }
 
   private validateStatusTransition(currentStatus: TaskStatus, newStatus: TaskStatus): void {
