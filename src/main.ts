@@ -1,20 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { AppConfigService } from './config/app.config.service';
+import { LogLevel } from './config/environment.enum';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
   const appConfigService = app.get(AppConfigService);
   const logger = new Logger('Bootstrap');
 
   // Security middleware
   app.use(helmet());
-  app.use(compression());
 
   // CORS - using centralized configuration
   const corsConfig = appConfigService.getCorsConfig();
@@ -38,11 +35,13 @@ async function bootstrap() {
   const port = appConfigService.getPort();
   const environment = appConfigService.getEnvironment();
   const mongoUri = appConfigService.getDatabaseConfig().uri;
+  const redisConfig = appConfigService.getRedisConfig();
   
   await app.listen(port);
   
-  logger.log(`🚀 Server running on http://localhost:${port}`);
-  logger.log(`📊 Environment: ${environment}`);
-  logger.log(`🗄️  MongoDB: ${mongoUri ? 'connected' : 'not configured'}`);
+  logger.log(LogLevel.INFO, `🚀 Server running on http://localhost:${port}`);
+  logger.log(LogLevel.INFO, `📊 Environment: ${environment}`);
+  logger.log(LogLevel.INFO, `🗄️  MongoDB: ${mongoUri ? 'connected' : 'not configured'}`);
+  logger.log(LogLevel.INFO, `🔴 Redis: ${redisConfig.host === 'localhost' && redisConfig.port === 6379 ? 'not configured (using defaults)' : `configured at ${redisConfig.host}:${redisConfig.port}`}`);
 }
 bootstrap();

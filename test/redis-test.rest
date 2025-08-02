@@ -1,0 +1,28 @@
+### Test Redis Functionality
+
+@url = http://localhost:3000/api/v1
+
+### 1. Test Redis Health Check (if Redis is configured)
+GET {{url}}/health/redis
+
+### 2. Test Analytics (should work with or without Redis)
+GET {{url}}/analytics/realtime
+
+### 3. Test Event Logging (should work with or without Redis)
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@taskmanagement.com",
+  "password": "Admin123!"
+}
+
+### 4. Check if Redis is actually running
+# You can also test Redis directly with:
+# redis-cli ping
+# Should return PONG if Redis is running
+
+### Expected Behavior:
+# - If Redis is not configured: Should see warnings but app should work
+# - If Redis is configured but not running: Should see connection errors but app should work
+# - If Redis is configured and running: Should see success messages 
